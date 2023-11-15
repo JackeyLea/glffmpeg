@@ -12,6 +12,9 @@
 		<Platform
 			Name="Win32"
 		/>
+		<Platform
+			Name="x64"
+		/>
 	</Platforms>
 	<ToolFiles>
 	</ToolFiles>
@@ -42,8 +45,8 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\;..\libavutil;..\libavformat;..\libavcodec"
-				PreprocessorDefinitions="WINDOWS;WIN32;_DEBUG;_WINDOWS;_USRDLL;GLFFMPEG_EXPORTS;EMULATE_INTTYPES"
+				AdditionalIncludeDirectories="..\c99;..\;..\libavutil;..\libavformat;..\libavcodec;..\libswscale"
+				PreprocessorDefinitions="WINDOWS;WIN32;_DEBUG;_WINDOWS;_USRDLL;GLFFMPEG_EXPORTS;EMULATE_INTTYPES;__STDC_CONSTANT_MACROS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -65,7 +68,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="msvcrtd.lib version.lib odbc32.lib odbccp32.lib avutil-49.lib avformat-51.lib avcodec-51.lib"
+				AdditionalDependencies="msvcrtd.lib version.lib odbc32.lib odbccp32.lib avutil.lib avformat.lib avcodec.lib avdevice.lib swscale.lib"
 				OutputFile="..\win32\vc9\dll\glffmpegD.dll"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="..\win32\vc9\lib"
@@ -125,8 +128,8 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="..\;..\libavutil;..\libavformat;..\libavcodec"
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;GLFFMPEG_EXPORTS;EMULATE_INTTYPES"
+				AdditionalIncludeDirectories="..\c99;..\;..\libavutil;..\libavformat;..\libavcodec;..\libswscale"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;GLFFMPEG_EXPORTS;EMULATE_INTTYPES\;__STDC_CONSTANT_MACROS"
 				RuntimeLibrary="0"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
@@ -144,7 +147,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="msvcrt.lib msvcprt.lib version.lib odbc32.lib odbccp32.lib avutil-49.lib avformat-51.lib avcodec-51.lib"
+				AdditionalDependencies="msvcrt.lib msvcprt.lib version.lib odbc32.lib odbccp32.lib avutil.lib avformat.lib avcodec.lib avdevice.lib swscale.lib"
 				OutputFile="..\win32\vc9\dll\glffmpeg.dll"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="..\win32\vc9\lib"
@@ -158,6 +161,173 @@
 				DataExecutionPrevention="0"
 				ImportLibrary="..\win32\vc9\lib\glffmpeg.lib"
 				TargetMachine="1"
+			/>
+			<Tool
+				Name="VCALinkTool"
+			/>
+			<Tool
+				Name="VCManifestTool"
+			/>
+			<Tool
+				Name="VCXDCMakeTool"
+			/>
+			<Tool
+				Name="VCBscMakeTool"
+			/>
+			<Tool
+				Name="VCFxCopTool"
+			/>
+			<Tool
+				Name="VCAppVerifierTool"
+			/>
+			<Tool
+				Name="VCPostBuildEventTool"
+			/>
+		</Configuration>
+		<Configuration
+			Name="Debug|x64"
+			OutputDirectory="..\win64\vc9\lib\"
+			IntermediateDirectory="Debug"
+			ConfigurationType="2"
+			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
+			CharacterSet="2"
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"
+			/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+				TargetEnvironment="3"
+			/>
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="0"
+				AdditionalIncludeDirectories="..\c99;..\;..\libavutil;..\libavformat;..\libavcodec;..\libswscale"
+				PreprocessorDefinitions="WINDOWS;WIN64;_DEBUG;_WINDOWS;_USRDLL;GLFFMPEG_EXPORTS;EMULATE_INTTYPES;__STDC_CONSTANT_MACROS"
+				MinimalRebuild="true"
+				BasicRuntimeChecks="3"
+				RuntimeLibrary="1"
+				UsePrecompiledHeader="0"
+				WarningLevel="3"
+				Detect64BitPortabilityProblems="true"
+				DebugInformationFormat="3"
+				CallingConvention="0"
+				CompileAs="2"
+			/>
+			<Tool
+				Name="VCManagedResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCPreLinkEventTool"
+			/>
+			<Tool
+				Name="VCLinkerTool"
+				AdditionalDependencies="msvcrtd.lib version.lib odbc32.lib odbccp32.lib avutil.lib avformat.lib avcodec.lib avdevice.lib swscale.lib"
+				OutputFile="..\win64\vc9\dll\glffmpegD.dll"
+				LinkIncremental="2"
+				AdditionalLibraryDirectories="..\win64\vc9\lib"
+				IgnoreDefaultLibraryNames="msvcprtd;libc;libcmt;msvcrtd;libcmtd"
+				GenerateDebugInformation="true"
+				ProgramDatabaseFile="..\win64\vc9\lib\glffmpegD.pdb"
+				SubSystem="2"
+				RandomizedBaseAddress="1"
+				DataExecutionPrevention="0"
+				ImportLibrary="..\win64\vc9\lib\glffmpegD.lib"
+				TargetMachine="17"
+			/>
+			<Tool
+				Name="VCALinkTool"
+			/>
+			<Tool
+				Name="VCManifestTool"
+			/>
+			<Tool
+				Name="VCXDCMakeTool"
+			/>
+			<Tool
+				Name="VCBscMakeTool"
+			/>
+			<Tool
+				Name="VCFxCopTool"
+			/>
+			<Tool
+				Name="VCAppVerifierTool"
+			/>
+			<Tool
+				Name="VCPostBuildEventTool"
+			/>
+		</Configuration>
+		<Configuration
+			Name="Release|x64"
+			OutputDirectory="..\win64\vc9\lib\"
+			IntermediateDirectory="Release"
+			ConfigurationType="2"
+			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
+			CharacterSet="2"
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"
+			/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+				TargetEnvironment="3"
+			/>
+			<Tool
+				Name="VCCLCompilerTool"
+				AdditionalIncludeDirectories="..\c99;..\;..\libavutil;..\libavformat;..\libavcodec;..\libswscale"
+				PreprocessorDefinitions="WIN64;NDEBUG;_WINDOWS;_USRDLL;GLFFMPEG_EXPORTS;EMULATE_INTTYPES;__STDC_CONSTANT_MACROS"
+				RuntimeLibrary="0"
+				UsePrecompiledHeader="0"
+				WarningLevel="3"
+				Detect64BitPortabilityProblems="true"
+				DebugInformationFormat="3"
+			/>
+			<Tool
+				Name="VCManagedResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCPreLinkEventTool"
+			/>
+			<Tool
+				Name="VCLinkerTool"
+				AdditionalDependencies="msvcrt.lib msvcprt.lib version.lib odbc32.lib odbccp32.lib avutil.lib avformat.lib avcodec.lib avdevice.lib swscale.lib"
+				OutputFile="..\win64\vc9\dll\glffmpeg.dll"
+				LinkIncremental="1"
+				AdditionalLibraryDirectories="..\win64\vc9\lib"
+				IgnoreDefaultLibraryNames="msvcprtd,libc, libcmt, msvcrtd,libcmtd"
+				GenerateDebugInformation="true"
+				ProgramDatabaseFile="..\win64\vc9\lib\glffmpeg.pdb"
+				SubSystem="2"
+				OptimizeReferences="2"
+				EnableCOMDATFolding="2"
+				RandomizedBaseAddress="1"
+				DataExecutionPrevention="0"
+				ImportLibrary="..\win64\vc9\lib\glffmpeg.lib"
+				TargetMachine="17"
 			/>
 			<Tool
 				Name="VCALinkTool"

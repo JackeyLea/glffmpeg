@@ -14,8 +14,15 @@
 #include <time.h>
 #endif
 
+#ifdef __cplusplus
+extern "C" 
+{
+#endif
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
+#include <libswscale/swscale.h>
+}
+
 #include <map>
 #include <string>
 
@@ -86,7 +93,7 @@ public:
         if( !( m_videoFormat->flags & AVFMT_NOFILE ) )
         {
             // close the output file
-            url_fclose( &m_videoContext->pb );
+            url_fclose( m_videoContext->pb );
         }
 
         // free the stream
@@ -169,8 +176,14 @@ public:
             m_codecContext->gop_size = 12; 
             m_codecContext->pix_fmt = PIX_FMT_YUV420P;
 
+            // If Mpeg1 then set macro block decision mode to rate distortion mode
             if( m_codecContext->codec_id == CODEC_ID_MPEG1VIDEO )
-                m_codecContext->mb_decision = 2;
+                m_codecContext->mb_decision = FF_MB_DECISION_RD;
+
+            // If the user has requested a raw video format then
+            // set the pixel format to PIX_FMT_YUV422P
+            if( m_codecContext->codec_id == CODEC_ID_RAWVIDEO )
+                m_codecContext->pix_fmt = PIX_FMT_YUV422P;
 
             // Some formats want stream headers to be separate
             if( !strcmp( m_videoContext->oformat->name, "mp4" ) || 
@@ -214,10 +227,12 @@ public:
 
             m_videoBuffer = NULL;
 
+            // If it is a raw format then manually allocate enough
+            // memory to hold the raw video buffer
             if( !( m_videoContext->oformat->flags & AVFMT_RAWPICTURE ) )
             {
                 // Allocate output buffer
-                m_videoBuffer = (uint8_t*) malloc(200000);
+                m_videoBuffer = (uint8_t*) malloc(m_width*m_height*30);
             }
 
             // Allocate the video frames
@@ -316,13 +331,19 @@ public:
         }
 
         // convert RGB to YUV
-        img_convert( ( AVPicture * ) m_yuvFrame, m_codecContext->pix_fmt,
-                     ( AVPicture * ) m_rgbFrame, PIX_FMT_RGB24, m_width, m_height );
+        static struct SwsContext *img_convert_ctx;
+
+        img_convert_ctx = sws_getContext(m_width, m_height, PIX_FMT_RGB24, m_width, m_height, 
+                                         m_codecContext->pix_fmt, SWS_BICUBIC, NULL, NULL, NULL);
+
+        sws_scale( img_convert_ctx, m_rgbFrame->data, m_rgbFrame->linesize, 0, 
+            m_codecContext->height, m_yuvFrame->data, m_yuvFrame->linesize );
+
 
         // flip the YUV frame upside down
         unsigned char* s;
         unsigned char* d;
-        static unsigned char  b[24000];
+        static unsigned char  b[48000];
 
         for ( s= m_yuvFrame->data[0], d= m_yuvFrame->data[1]-m_yuvFrame->linesize[0];
             s < d; s+= m_yuvFrame->linesize[0], d-= m_yuvFrame->linesize[0] )

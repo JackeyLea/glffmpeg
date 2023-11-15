@@ -1,5 +1,5 @@
 /*
- * copyright (c) 2006 Mans Rullgard
+ * Copyright (c) 2009 Baptiste Coudurier <baptiste.coudurier@gmail.com>
  *
  * This file is part of FFmpeg.
  *
@@ -18,25 +18,14 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#ifndef AVUTIL_ADLER32_H
-#define AVUTIL_ADLER32_H
+#ifndef AVUTIL_RANDOM_SEED_H
+#define AVUTIL_RANDOM_SEED_H
 
 #include <stdint.h>
-#include "attributes.h"
 
 /**
- * Calculate the Adler32 checksum of a buffer.
- *
- * Passing the return value to a subsequent av_adler32_update() call
- * allows the checksum of multiple buffers to be calculated as though
- * they were concatenated.
- *
- * @param adler initial checksum value
- * @param buf   pointer to input buffer
- * @param len   size of input buffer
- * @return      updated checksum
+ * Get a seed to use in conjunction with random functions.
  */
-unsigned long av_adler32_update(unsigned long adler, const uint8_t *buf,
-                                unsigned int len) av_pure;
+uint32_t av_get_random_seed(void);
 
-#endif /* AVUTIL_ADLER32_H */
+#endif /* AVUTIL_RANDOM_SEED_H */

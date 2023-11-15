@@ -18,18 +18,27 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#ifndef CRC_H
-#define CRC_H
+#ifndef AVUTIL_CRC_H
+#define AVUTIL_CRC_H
+
+#include <stdint.h>
+#include <stddef.h>
+#include "attributes.h"
 
 typedef uint32_t AVCRC;
 
-extern AVCRC *av_crcEDB88320;
-extern AVCRC *av_crc04C11DB7;
-extern AVCRC *av_crc8005    ;
-extern AVCRC *av_crc07      ;
+typedef enum {
+    AV_CRC_8_ATM,
+    AV_CRC_16_ANSI,
+    AV_CRC_16_CCITT,
+    AV_CRC_32_IEEE,
+    AV_CRC_32_IEEE_LE,  /*< reversed bitorder version of AV_CRC_32_IEEE */
+    AV_CRC_MAX,         /*< Not part of public API! Do not use outside libavutil. */
+}AVCRCId;
 
 int av_crc_init(AVCRC *ctx, int le, int bits, uint32_t poly, int ctx_size);
-uint32_t av_crc(const AVCRC *ctx, uint32_t start_crc, const uint8_t *buffer, size_t length);
+const AVCRC *av_crc_get_table(AVCRCId crc_id);
+uint32_t av_crc(const AVCRC *ctx, uint32_t start_crc, const uint8_t *buffer, size_t length) av_pure;
 
-#endif /* CRC_H */
+#endif /* AVUTIL_CRC_H */
 
