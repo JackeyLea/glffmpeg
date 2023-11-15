@@ -9,3 +9,5 @@ See the samples included with the distribution for usage.
 Pre-built binaries and Instructions for building ffmpeg on Windows can be found at: https://github.com/BtbN/FFmpeg-Builds/releases
 
 The latest ffmpeg sources can be found at: https://github.com/FFmpeg/FFmpeg
+
+Fork from <a href="https://sourceforge.net/projects/glffmpeg/" target="_blank">glffmpeg</a>
