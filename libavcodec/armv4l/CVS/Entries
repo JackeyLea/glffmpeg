@@ -1,0 +1,11 @@
+/dsputil_arm.c/1.1.1.1/Thu Mar 19 15:58:30 2009//
+/dsputil_arm_s.S/1.1.1.1/Thu Mar 19 15:58:30 2009//
+/dsputil_iwmmxt.c/1.1.1.1/Thu Mar 19 15:58:30 2009//
+/dsputil_iwmmxt_rnd.h/1.1.1.1/Thu Mar 19 15:58:30 2009//
+/jrevdct_arm.S/1.1.1.1/Thu Mar 19 15:58:30 2009//
+/mathops.h/1.1.1.1/Thu Mar 19 15:58:30 2009//
+/mpegvideo_arm.c/1.1.1.1/Thu Mar 19 15:58:30 2009//
+/mpegvideo_iwmmxt.c/1.1.1.1/Thu Mar 19 15:58:30 2009//
+/simple_idct_arm.S/1.1.1.1/Thu Mar 19 15:58:30 2009//
+/simple_idct_armv5te.S/1.1.1.1/Thu Mar 19 15:58:30 2009//
+D

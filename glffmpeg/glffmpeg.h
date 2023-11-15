@@ -4,16 +4,17 @@
 *
 * This file is part of glFFmpeg.
 */
+
 #ifndef GLFFMPEG_H
 #define GLFFMPEG_H
 
-#ifdef _WIN32 
+#ifdef _WIN32
 
 #include <windows.h>
 #define GLFFMPEGDECLSPEC __declspec(dllexport)
 #define WIN32_LEAN_AND_MEAN 1
 
-#else
+#else // Linux/Unix
 
 #include <stdlib.h>
 #include <string.h>
@@ -25,25 +26,45 @@
 #define __cdecl
 #define __stdcall
 
-#endif
+#endif // _WIN32
 
-/************************************************************************/
-/********  GLFFMPEG LIBRARY EXPORTS                                */
-/************************************************************************/
+//------------------------------------------------------------------------------
+// GLFFMPEG LIBRARY EXPORTS
+//------------------------------------------------------------------------------
+
 #ifdef __cplusplus
-extern "C" {
+extern "C" 
+{
 #endif
 
-    GLFFMPEGDECLSPEC __cdecl int initializeGLFFMPEG();
-    GLFFMPEGDECLSPEC __cdecl int shutdownGLFFMPEG();
-    GLFFMPEGDECLSPEC __cdecl int initializeStream(const char* streamName, 
+    /**
+     * Each function exposed by the DLL will return one of the possible status 
+     * error codes below:
+     *
+     * 0 Success - status normal.
+     * 1 ffmpegHelper::configure: Unable to locate a suitable encoding format.
+     * 2 ffmpegHelper::configure: Error allocating video context.
+     * 3 ffmpegHelper::configure: Error allocating video stream.
+     * 4 ffmpegHelper::configure: Invalid output parameters.
+     * 5 ffmpegHelper::configure: Codec not found.
+     * 6 ffmpegHelper::configure: Could not open codec.
+     * 7 ffmpegHelper::configure: Error allocating video frame.
+     * 8 ffmpegHelper::configure: Unable to open output file <file_name>,
+     * 9 ffmpegHelper::encodeFrame: You need to create a stream first.
+     *
+     * Use the getStatus() function to check the status of a particlaur stream.
+     */
+
+    int GLFFMPEGDECLSPEC __cdecl initializeGLFFMPEG();
+    int GLFFMPEGDECLSPEC __cdecl shutdownGLFFMPEG();
+    int GLFFMPEGDECLSPEC __cdecl initializeStream(const char* streamName, 
         int fpsRate, int width, int height, void* imageBuffer);
-    GLFFMPEGDECLSPEC __cdecl int encodeFrame(const char* streamName); 
-    GLFFMPEGDECLSPEC __cdecl int shutdownStream(const char* streamName); 
+    int GLFFMPEGDECLSPEC __cdecl encodeFrame(const char* streamName); 
+    int GLFFMPEGDECLSPEC __cdecl shutdownStream(const char* streamName);
+    int GLFFMPEGDECLSPEC __cdecl getStatus(const char* streamName);
 
 #ifdef __cplusplus
 }
 #endif
 
-
-#endif /* REMOTE_RENDER_H */
+#endif // REMOTE_RENDER_H
