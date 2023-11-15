@@ -41,7 +41,7 @@
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386"
 				AdditionalDependencies="glffmpegD.lib opengl32.lib odbc32.lib odbccp32.lib"
-				OutputFile="glffmpeg_exampleD.exe"
+				OutputFile="glffmpeg_example.exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="TRUE"
 				AdditionalLibraryDirectories=".\win32\lib\"
