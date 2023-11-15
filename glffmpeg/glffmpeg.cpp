@@ -25,8 +25,11 @@ extern "C"
 
 #include <map>
 #include <string>
+#include <cassert>
 
 static bool s_bInitialized = false;
+
+static const unsigned int s_kunMaxLineSize = 4096;
 
 #ifdef WIN32
 
@@ -59,7 +62,10 @@ public:
         m_status(0),
         m_width(0),
         m_height(0),
-        m_bShutdownRequested(false)
+        m_bShutdownRequested(false),
+        m_videoBuffer(NULL),
+        m_unVideoBufferSize(0),
+        m_img_convert_ctx(NULL)
     {}
 
     /**
@@ -70,34 +76,47 @@ public:
         m_bShutdownRequested = true;
 
         // Close each codec
-        if( m_pAVIFile )
+        if( m_pAVIFile != NULL )
         {
             avcodec_close( m_pAVIFile->codec );
-            free( m_yuvFrame->data[0] );
-            av_free( m_yuvFrame );
             av_free( m_rgbFrame );
             free( m_videoBuffer );
         }
 
-        // Write the trailer, if any
-        av_write_trailer( m_videoContext );
-
-        // Free the streams
-        int i = 0;
-        for( ; i < m_videoContext->nb_streams; i++ )
+        if ( m_yuvFrame != NULL )
         {
-            av_freep( &m_videoContext->streams[i]->codec );
-            av_freep( &m_videoContext->streams[i] );
+            free(m_yuvFrame->data[0]);
+            av_free(m_yuvFrame);
+            m_yuvFrame = NULL;
         }
 
-        if( !( m_videoFormat->flags & AVFMT_NOFILE ) )
+        if ( m_videoContext != NULL )
         {
-            // close the output file
-            url_fclose( m_videoContext->pb );
+            // Write the trailer, if any
+            av_write_trailer(m_videoContext);
+
+            // Free the streams
+            for (unsigned int i = 0; i < m_videoContext->nb_streams; i++)
+            {
+                av_freep(&m_videoContext->streams[i]->codec);
+                av_freep(&m_videoContext->streams[i]);
+            }
+
+            if ( (m_videoFormat->flags & AVFMT_NOFILE) )
+            {
+                // close the output file
+                avio_close(m_videoContext->pb);
+            }
+
+            // free the stream
+            av_free(m_videoContext);
         }
 
-        // free the stream
-        av_free( m_videoContext );
+        if  (m_img_convert_ctx != NULL )
+        {
+            sws_freeContext(m_img_convert_ctx);
+        }
+
     }
 
     /**
@@ -118,12 +137,12 @@ public:
         }
 
         // Auto detect the output format from the name. default is  mpeg.
-        m_videoFormat = guess_format( NULL, fileName, NULL );
+        m_videoFormat = av_guess_format(NULL, fileName, NULL);
 
         if( !m_videoFormat )
         {
             printf( "Could not deduce output format from file extension. Defaulting to MPEG.\n" );
-            m_videoFormat = guess_format( "mpeg", NULL, NULL );
+            m_videoFormat = av_guess_format( "mpeg", NULL, NULL );
         }
 
         if( !m_videoFormat )
@@ -134,7 +153,7 @@ public:
         }
 
         // Allocate the output media context.
-        m_videoContext = av_alloc_format_context();
+        m_videoContext = avformat_alloc_context();
 
         if( !m_videoContext )
         {
@@ -146,7 +165,7 @@ public:
         m_videoContext->oformat = m_videoFormat;
 
 #ifdef _WIN32
-        _snprintf( m_videoContext->filename, sizeof( m_videoContext->filename ), "%s", fileName );
+        _snprintf_s( m_videoContext->filename, sizeof( m_videoContext->filename ), "%s", fileName );
 #else
         snprintf( m_videoContext->filename, sizeof( m_videoContext->filename ), "%s", fileName );
 #endif
@@ -154,9 +173,9 @@ public:
         // video stream using the default format codec and initialize the codec
         m_pAVIFile= NULL;
 
-        if( m_videoFormat->video_codec != CODEC_ID_NONE )
+        if( m_videoFormat->video_codec != AV_CODEC_ID_NONE )
         {
-            m_pAVIFile = av_new_stream( m_videoContext, 0 );
+            m_pAVIFile = avformat_new_stream(m_videoContext, 0);
 
             if( !m_pAVIFile )
             {
@@ -165,50 +184,26 @@ public:
                 return m_status;
             }
 
+            m_pAVIFile->time_base.den = 1;
+            m_pAVIFile->time_base.num = 1;
+
             m_codecContext = m_pAVIFile->codec;
-            m_codecContext->codec_id = m_videoFormat->video_codec;
-            m_codecContext->codec_type = CODEC_TYPE_VIDEO;
-            m_codecContext->bit_rate = 7500000;
-            m_codecContext->width = m_width;
-            m_codecContext->height = m_height;
-            m_codecContext->time_base.den = fpsRate;
-            m_codecContext->time_base.num = 1;
-            m_codecContext->gop_size = 12; 
-            m_codecContext->pix_fmt = PIX_FMT_YUV420P;
 
-            // If Mpeg1 then set macro block decision mode to rate distortion mode
-            if( m_codecContext->codec_id == CODEC_ID_MPEG1VIDEO )
-                m_codecContext->mb_decision = FF_MB_DECISION_RD;
-
-            // If the user has requested a raw video format then
-            // set the pixel format to PIX_FMT_YUV422P
-            if( m_codecContext->codec_id == CODEC_ID_RAWVIDEO )
-                m_codecContext->pix_fmt = PIX_FMT_YUV422P;
-
-            // Some formats want stream headers to be separate
-            if( !strcmp( m_videoContext->oformat->name, "mp4" ) || 
-                !strcmp( m_videoContext->oformat->name, "mov" ) || 
-                !strcmp( m_videoContext->oformat->name, "3gp" ) )
-            {
-                m_codecContext->flags |= CODEC_FLAG_GLOBAL_HEADER;
-            }
-        }
-
-        // Set the output parameters
-        if( av_set_parameters( m_videoContext, NULL ) < 0 )
-        {
-            printf( "ffmpegHelper::configure: Invalid output parameters.\n" );
-            m_status = 4;
-            return m_status;
+            m_codecParams = m_pAVIFile->codecpar;
+            m_codecParams->codec_id = m_videoFormat->video_codec;
+            m_codecParams->codec_type = AVMEDIA_TYPE_VIDEO;
+            m_codecParams->bit_rate = 7500000;
+            m_codecParams->width = m_width;
+            m_codecParams->height = m_height;
         }
 
         // Print encoding format information to the console
-        dump_format( m_videoContext, 0, fileName, 1 );
+        av_dump_format( m_videoContext, 0, fileName, 1 );
 
         if( m_pAVIFile )
         {
             // Find the video encoder
-            AVCodec* codec = avcodec_find_encoder( m_codecContext->codec_id );
+            AVCodec* codec = avcodec_find_encoder(m_codecParams->codec_id);
 
             if( !codec )
             {
@@ -217,8 +212,35 @@ public:
                 return m_status;
             }
 
+
+            avcodec_get_context_defaults3(m_codecContext, codec);
+
+            m_codecContext->time_base.den = fpsRate;
+            m_codecContext->time_base.num = 1;
+            m_codecContext->gop_size = 12;
+            m_codecContext->pix_fmt = AV_PIX_FMT_YUV420P;
+            m_codecContext->width = m_width;
+            m_codecContext->height = m_height;
+
+            // If Mpeg1 then set macro block decision mode to rate distortion mode
+            if ( m_codecParams->codec_id == AV_CODEC_ID_MPEG1VIDEO )
+                m_codecContext->mb_decision = FF_MB_DECISION_RD;
+
+            // If the user has requested a raw video format then
+            // set the pixel format to AV_PIX_FMT_YUV422P
+            if ( m_codecParams->codec_id == AV_CODEC_ID_RAWVIDEO )
+                m_codecContext->pix_fmt = AV_PIX_FMT_YUV422P;
+
+            // Some formats want stream headers to be separate
+            if( !strcmp( m_videoContext->oformat->name, "mp4" ) || 
+                !strcmp( m_videoContext->oformat->name, "mov" ) || 
+                !strcmp( m_videoContext->oformat->name, "3gp" ) )
+            {
+                m_codecContext->flags |= CODEC_FLAG_GLOBAL_HEADER;
+            }
+
             // Open the codec
-            if( avcodec_open( m_codecContext, codec ) < 0 )
+            if( avcodec_open2(m_codecContext, codec, NULL) < 0 )
             {
                 printf( "ffmpegHelper::configure: Could not open codec.\n" );
                 m_status = 6;
@@ -232,14 +254,15 @@ public:
             if( !( m_videoContext->oformat->flags & AVFMT_RAWPICTURE ) )
             {
                 // Allocate output buffer
-                m_videoBuffer = (uint8_t*) malloc(m_width*m_height*30);
+                m_unVideoBufferSize = m_width * m_height * 30;
+                m_videoBuffer = (uint8_t*) malloc(m_unVideoBufferSize);
             }
 
             // Allocate the video frames
             uint8_t *picture_buf;
             int size;
 
-            m_yuvFrame = avcodec_alloc_frame();
+            m_yuvFrame = av_frame_alloc();
 
             if( !m_yuvFrame )
             {
@@ -247,6 +270,10 @@ public:
                 m_status = 7;
                 return m_status;
             }
+
+            m_yuvFrame->format = m_codecContext->pix_fmt;
+            m_yuvFrame->width = m_width;
+            m_yuvFrame->height = m_height;
 
             size = avpicture_get_size( m_codecContext->pix_fmt, m_width, m_height );
             picture_buf = (uint8_t*) malloc( size );
@@ -261,7 +288,7 @@ public:
             avpicture_fill( (AVPicture*)m_yuvFrame, picture_buf,
                 m_codecContext->pix_fmt, m_width, m_height );
 
-            m_rgbFrame = avcodec_alloc_frame();
+            m_rgbFrame = av_frame_alloc();
 
             if( !m_rgbFrame )
             {
@@ -270,16 +297,19 @@ public:
                 return m_status;
             }
 
-            size = avpicture_get_size( PIX_FMT_RGB24, m_width, m_height );
+            m_rgbFrame->width = m_width;
+            m_rgbFrame->height = m_height;
+
+            size = avpicture_get_size(AV_PIX_FMT_RGB24, m_rgbFrame->width, m_rgbFrame->height);
 
             avpicture_fill( (AVPicture*)m_rgbFrame, (uint8_t*)imageBuffer,
-                            PIX_FMT_RGB24, m_width, m_height );
+                            AV_PIX_FMT_RGB24, m_width, m_height );
         }
 
         // Open the output file, if needed.
         if( !( m_videoFormat->flags & AVFMT_NOFILE ) )
         {
-            if( url_fopen( &m_videoContext->pb, fileName, URL_WRONLY ) < 0 )
+            if ( avio_open(&m_videoContext->pb, fileName, AVIO_FLAG_WRITE) < 0 )
             {
                 printf( "ffmpegHelper::configure: Unable to open output file <%s>.\n", fileName );
                 m_status = 10;
@@ -288,7 +318,8 @@ public:
         }
 
         // Write the stream header, if any
-        av_write_header( m_videoContext );
+        avformat_write_header(m_videoContext, NULL);
+
 
         m_status = 0;
         return m_status;
@@ -331,19 +362,22 @@ public:
         }
 
         // convert RGB to YUV
-        static struct SwsContext *img_convert_ctx;
+        if ( m_img_convert_ctx == NULL )
+        {
+            m_img_convert_ctx = sws_getContext(m_width, m_height, AV_PIX_FMT_RGB24, m_width, m_height,
+                m_codecContext->pix_fmt, SWS_BICUBIC, NULL, NULL, NULL);
+        }
 
-        img_convert_ctx = sws_getContext(m_width, m_height, PIX_FMT_RGB24, m_width, m_height, 
-                                         m_codecContext->pix_fmt, SWS_BICUBIC, NULL, NULL, NULL);
-
-        sws_scale( img_convert_ctx, m_rgbFrame->data, m_rgbFrame->linesize, 0, 
-            m_codecContext->height, m_yuvFrame->data, m_yuvFrame->linesize );
+        sws_scale(m_img_convert_ctx, m_rgbFrame->data, m_rgbFrame->linesize, 0,
+            m_rgbFrame->height, m_yuvFrame->data, m_yuvFrame->linesize);
 
 
         // flip the YUV frame upside down
         unsigned char* s;
         unsigned char* d;
-        static unsigned char  b[48000];
+        static unsigned char  b[s_kunMaxLineSize];
+
+        assert(m_yuvFrame->linesize[0] <= s_kunMaxLineSize);
 
         for ( s= m_yuvFrame->data[0], d= m_yuvFrame->data[1]-m_yuvFrame->linesize[0];
             s < d; s+= m_yuvFrame->linesize[0], d-= m_yuvFrame->linesize[0] )
@@ -353,6 +387,8 @@ public:
             memcpy( d, b, m_yuvFrame->linesize[0] );
         }
 
+        assert(m_yuvFrame->linesize[1] <= s_kunMaxLineSize);
+
         for ( s= m_yuvFrame->data[1], d= m_yuvFrame->data[2]-m_yuvFrame->linesize[2];
             s < d; s+= m_yuvFrame->linesize[1], d-= m_yuvFrame->linesize[1] )
         {
@@ -360,6 +396,8 @@ public:
             memcpy( s, d, m_yuvFrame->linesize[1] );
             memcpy( d, b, m_yuvFrame->linesize[1] );
         }
+
+        assert(m_yuvFrame->linesize[2] <= s_kunMaxLineSize);
 
         for ( s= m_yuvFrame->data[2], d= m_yuvFrame->data[2]+
             ( m_yuvFrame->data[2]-m_yuvFrame->data[1]-m_yuvFrame->linesize[2] );
@@ -371,24 +409,29 @@ public:
         }
 
         // Encode the YUV frame.
-        size_t out_size = avcodec_encode_video( m_codecContext, m_videoBuffer, 
-                                                m_width*m_height*30, m_yuvFrame );
 
-        // If zero size, it means the image was buffered.
-        if( out_size > 0 )
+        int got_packet;
+        AVPacket pkt;
+        av_init_packet(&pkt);
+        pkt.data = m_videoBuffer;
+        pkt.size = m_unVideoBufferSize;
+
+        int encode_ret = 
+            avcodec_encode_video2(m_codecContext, &pkt, m_yuvFrame, &got_packet);
+
+        // Verify if encoding was successfull
+        if( encode_ret == 0 )
         {
-            AVPacket pkt;
-            av_init_packet( &pkt );
-
-            if( m_codecContext->coded_frame->key_frame )
-                pkt.flags |= PKT_FLAG_KEY;
-            pkt.stream_index= m_pAVIFile->index;
-            pkt.data= m_videoBuffer;
-            pkt.size= out_size;
+            if ( pkt.pts != AV_NOPTS_VALUE )
+                pkt.pts = av_rescale_q(pkt.pts, m_pAVIFile->codec->time_base, m_pAVIFile->time_base);
+            if ( pkt.dts != AV_NOPTS_VALUE )
+                pkt.dts = av_rescale_q(pkt.dts, m_pAVIFile->codec->time_base, m_pAVIFile->time_base);
 
             // Write the compressed frame in the media file.
             av_write_frame( m_videoContext, &pkt );
         }
+
+        av_free_packet(&pkt);
 
         m_status = 0;
         return m_status;
@@ -404,9 +447,12 @@ private:
     AVFormatContext* m_videoContext;
     AVOutputFormat* m_videoFormat;
     AVCodecContext* m_codecContext;
+    AVCodecParameters* m_codecParams;
     AVFrame* m_rgbFrame;
     AVFrame* m_yuvFrame;
     uint8_t* m_videoBuffer;
+    uint32_t m_unVideoBufferSize;
+    struct SwsContext *m_img_convert_ctx;
 };
 
 typedef std::map<std::string, ffmpegHelper* > ffmpegHelpers;

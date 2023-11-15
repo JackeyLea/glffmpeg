@@ -1,0 +1,17 @@
+This contain instruction for building glffmpeg on CentOS / Enterprise Linux 7
+
+* Building glffmpeg with G++: 
+
+  Requirements: 
+  * GCC C++ compilers
+    yum install gcc-c++
+  * Make
+    yum install make
+  * OpenGL and GLU headers
+    yum install mesa-libGL-devel mesa-libGLU-devel
+  * ffmpeg 3.3.3 libraries and headers http://ffmpeg.zeranoe.com/builds/
+  
+  Build steps:
+  * Update the ffmmpeg source directory within Makefile.config
+  * Run make
+  

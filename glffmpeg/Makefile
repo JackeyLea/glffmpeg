@@ -1,28 +1,16 @@
-include ../config.mak
-CC = g++
-#prefix = /usr/local
-#exec_prefix = ${prefix}
-#bindir = ${exec_prefix}/bin
-#INSTALL = install
-EXTRALIBS :=  \
-		$(BUILD_ROOT)/libavformat/libavformat.a \
-		$(BUILD_ROOT)/libavcodec/libavcodec.a \
-		$(BUILD_ROOT)/libavutil/libavutil.a \
-		$(EXTRALIBS)
+.POSIX:
+.SUFFIXES:
 
-CFLAGS+=-I$(SRC_PATH)/ -I$(SRC_PATH)/libavutil -I$(SRC_PATH)/libavformat -I$(SRC_PATH)/libavcodec
+include ../Makefile.config
+LDLIBS = -lavformat -lavcodec -lavutil -lswscale
+LDFLAGS = -L../
+CFLAGS+=-I$(FFMPEG_SOURCE)
 
-#BUILD_SHARED=yes 
+all: libglffmpeg.so
 
-OBJS :=  glffmpeg.obj
+libglffmpeg.so: glffmpeg.o
+	$(CXX) $(LDFLAGS) $(LDLIBS) -t -shared -o $@ $<
 
-%.obj: %.cpp
-	g++ $(CFLAGS) -c -o $@ $<
+glffmpeg.o: glffmpeg.cpp
+	$(CXX) $(CFLAGS) -c -fPIC -o $@ $<
 
-NAME=glffmpeg
-
-$(NAME) : $(OBJS)
-	rm -f $@
-	$(CC)  -t -o lib$(NAME).so -shared -m32 $(OBJS) $(EXTRAOBJS) $(EXTRALIBS)
-
-include ../common.mak

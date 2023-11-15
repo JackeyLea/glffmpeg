@@ -13,12 +13,11 @@ GLFFmpeg README
 
         See the samples included with the distribution for usage.
 
-        Pre-built binaries and Instructions for building ffmpeg on 
-        Windows can be found at:
-            http://arrozcru.no-ip.org/ffmpeg/index.html
+        Pre-built binaries for ffmpeg on Windows can be found at:
+            http://ffmpeg.zeranoe.com/builds/
 
         The latest ffmpeg sources can be found at:
-            http://prdownloads.sourceforge.net/ffmpeg/
+            https://www.ffmpeg.org/download.html
 
 2) Licensing
 ------------
