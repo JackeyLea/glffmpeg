@@ -1,24 +1,24 @@
 ## GLFFmpeg
 
-### Documentation
+### Intro
 
 GLFFmpeg uses the video recording functionality provided by the FFmpeg library to capture content generated using OpenGL.
-	
+
 The GLFFmpeg library provides a minimalistic set of entry points into the (very thorough) FFmpeg API to simplify the task of capturing OpenGL output to a video stream.
 
 See the samples included with the distribution for usage.
 
-Pre-built binaries and Instructions for building ffmpeg on 
-
-Windows can be found at: https://github.com/BtbN/FFmpeg-Builds/releases
+Pre-built binaries and Instructions for building ffmpeg on Windows can be found at: https://github.com/BtbN/FFmpeg-Builds/releases
 
 The latest ffmpeg sources can be found at: https://github.com/FFmpeg/FFmpeg
+
+### Install
 
 The following are instructions for installing glffmpeg to Vega Prime and compiling the source code under Windows and Linux. Note, for future reference, the following instructions make reference to a folder called "Vega_Prime_X". The "X" is refering to the Vega Prime version installed on your machine, like '3' or '4' (so Vega_Prime_3 or Vega_Prime_4, etc).
 
 Adding glffmpeg to Vega Prime:
 
-On Windows:
+#### Windows
 
 1)	Download one of the following files depending on the Visual C/C++ Compiler compiler version (or Visual Studio version) used to build your Vega Prime install: 
 VC8 (Visual Studio 2005)	-	glffmpeg-v1.2-win32-x86-vc8-for-vega-prime.zip
@@ -28,8 +28,12 @@ VC9 (Visual Studio 2008)	-	glffmpeg-v1.2-win32-x86-vc9-for-vega-prime.zip
 C:\Presagis\Vega_Prime_X\bin
 
 You should now be able to record video in Vega Prime.
-		
-On Linux:
+
+* Installing glffmpeg to capture Vega Prime
+
+  Copy files from `glffmpeg-v1.4-win64-vc12\*.dll` to `C:\Presagis\Suite16\Vega_Prime\bin`
+
+#### Red Hat Entreprise Linux 7 (el7) or CentOS 7
 
 1)	Download one of the following files depending on which architecture of Vega Prime you are running:
 
@@ -38,11 +42,28 @@ On Linux:
 
 2)	In the download tar.gz file, grab the "libglffmpeg.so" file and place it in the "lib" or "lib64" (depending on your machine's architecture) directory of your Vega Prime install. These directories are probably located under this directory: /usr/local/Presagis/Vega_Prime_X
 
+* Running the example application
+
+```bash
+cd glffmpeg-v1.4-el7-x84_64/
+LD_LIBRARY_PATH=. ./example
+```
+
+* Installing glffmpeg to capture Vega Prime (requires root)
+
+```bash
+cd glffmpeg-v1.4-el7-x84_64/
+cp lib* /usr/local/Presagis/Suite16/Vega_Prime/lib64
+```
+
 You should now be able to record video in Vega Prime.
-			
+
+### Build
+
 Adding glffmpeg to Vega Prime from Compiled Source Code:
 
 On Windows:
+
 1)	Download the file "glffmpeg-v1.2-src.zip" and extract the folder "glffmpeg-v1.2-src".
 2)	In "glffmpeg-v1.2-src", open either "glffmpeg_vc8.sln" or "glffmpeg_vc9.sln" depending on your installed Vega Prime VC version.
 3)	In Visual Studio, build the release and debug versions of the glffmpeg project.
@@ -78,3 +99,4 @@ make
 ```
 
 3) 	Place the "libglffmpeg" library (it should be in the "glffmpeg" folder) in the "lib64" folder of your Vega Prime install (probably located under "/usr/local/Presagis/Vega_Prime_X").
+
