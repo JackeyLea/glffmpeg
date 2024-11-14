@@ -80,7 +80,6 @@ public:
 		// Close each codec
 		if (m_pAVIFile != NULL)
 		{
-			avcodec_close(m_pAVIFile->codec);
 			av_free(m_rgbFrame);
 			free(m_videoBuffer);
 		}
@@ -100,7 +99,6 @@ public:
 			// Free the streams
 			for (unsigned int i = 0; i < m_videoContext->nb_streams; i++)
 			{
-				av_freep(&m_videoContext->streams[i]->codec);
 				av_freep(&m_videoContext->streams[i]);
 			}
 
@@ -189,9 +187,7 @@ public:
 			m_pAVIFile->time_base.den = 1;
 			m_pAVIFile->time_base.num = 1;
 
-			m_codecContext = m_pAVIFile->codec;
-
-			m_codecParams = m_pAVIFile->codecpar;
+			m_codecParams = m_videoContext->streams[m_pAVIFile->index]->codecpar;
 			m_codecParams->codec_id = m_videoFormat->video_codec;
 			m_codecParams->codec_type = AVMEDIA_TYPE_VIDEO;
 			m_codecParams->bit_rate = 7500000;
@@ -214,8 +210,13 @@ public:
 				return m_status;
 			}
 
-
-			avcodec_get_context_defaults3(m_codecContext, codec);
+			m_codecContext = avcodec_alloc_context3(codec);
+			avcodec_parameters_to_context(m_codecContext, m_codecParams);
+			if (m_codecContext == NULL) {
+				printf("ffmpegHelper::configure: Cannot alloc context.\n");
+				m_status = 5;
+				return m_status;
+			}
 
 			m_codecContext->time_base.den = fpsRate;
 			m_codecContext->time_base.num = 1;
