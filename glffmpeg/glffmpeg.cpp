@@ -60,6 +60,11 @@ public:
 	ffmpegHelper() :
 		m_pAVIFile(NULL),
 		m_videoContext(NULL),
+		m_videoFormat(NULL),
+		m_codecContext(NULL),
+		m_codecParams(NULL),
+		m_yuvFrame(NULL),
+		m_rgbFrame(NULL),
 		m_status(0),
 		m_width(0),
 		m_height(0),
