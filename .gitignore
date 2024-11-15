@@ -398,3 +398,11 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
+
+# 此工程的编译输出目录
+output
+*_Release
+*_Debug
+
+# 库文件目录
+ffmpeg
