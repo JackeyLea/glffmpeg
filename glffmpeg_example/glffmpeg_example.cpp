@@ -25,7 +25,8 @@
 #define FAILURE -1
 #define SUCCESS 1
 
-const unsigned int WINDOW_SIZE = 320;
+const unsigned int WINDOW_WIDTH = 1920;
+const unsigned int WINDOW_HEIGHT = 1080;
 const unsigned int FRAME_NUMBER = 600;
 const char* STREAM_NAME = "glFFmpeg_example.mov";
 
@@ -344,7 +345,7 @@ int main(int argc, char* argv[])
 	s_argv = argv;
 
 	// Initialize a GL context
-	if (CreateOpenGLWindow("glFFmpeg", 0, 0, WINDOW_SIZE, WINDOW_SIZE) != SUCCESS)
+	if (CreateOpenGLWindow("glFFmpeg", 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT) != SUCCESS)
 	{
 		return FAILURE;
 	}
@@ -355,10 +356,10 @@ int main(int argc, char* argv[])
 		return FAILURE;
 	}
 
-	imageBuffer = malloc(WINDOW_SIZE * WINDOW_SIZE * 3);
+	imageBuffer = malloc(WINDOW_WIDTH * WINDOW_HEIGHT * 3);
 
-	if (initializeStream(STREAM_NAME, 60, WINDOW_SIZE,
-		WINDOW_SIZE, imageBuffer) != 0)
+	if (initializeStream(STREAM_NAME, 60, WINDOW_WIDTH,
+		WINDOW_HEIGHT, imageBuffer) != 0)
 	{
 		free(imageBuffer);
 		return FAILURE;
@@ -379,7 +380,7 @@ int main(int argc, char* argv[])
 		}
 
 		// capture the frame
-		glReadPixels(0, 0, WINDOW_SIZE, WINDOW_SIZE, GL_RGB, GL_UNSIGNED_BYTE, imageBuffer);
+		glReadPixels(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, GL_RGB, GL_UNSIGNED_BYTE, imageBuffer);
 		// encode the frame to the video strem  
 		encodeFrame(STREAM_NAME);
 
