@@ -412,7 +412,7 @@ int main(int argc, char* argv[])
 		glXSwapBuffers(s_pDisplay, s_hWnd);
 
 		// capture the frame
-		glReadPixels(0, 0, WINDOW_SIZE, WINDOW_SIZE, GL_RGB, GL_UNSIGNED_BYTE, imageBuffer);
+		glReadPixels(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, GL_RGB, GL_UNSIGNED_BYTE, imageBuffer);
 		// encode the frame to the video strem  
 		encodeFrame(STREAM_NAME);
 
