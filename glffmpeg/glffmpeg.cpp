@@ -228,6 +228,7 @@ public:
 			m_codecContext->pix_fmt = AV_PIX_FMT_YUV420P;
 			m_codecContext->width = m_width;
 			m_codecContext->height = m_height;
+			m_codecContext->bit_rate = 7500000;
 
 			// If Mpeg1 then set macro block decision mode to rate distortion mode
 			if (m_codecParams->codec_id == AV_CODEC_ID_MPEG1VIDEO)
