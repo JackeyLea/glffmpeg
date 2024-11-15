@@ -70,7 +70,8 @@ public:
 		m_height(0),
 		m_bShutdownRequested(false),
 		m_unVideoBufferSize(0),
-		m_img_convert_ctx(NULL)
+		m_img_convert_ctx(NULL),
+		m_frameCount(0)
 	{
 	}
 
@@ -410,6 +411,8 @@ public:
 		AVPacket* pkt = av_packet_alloc();
 		pkt->size = m_unVideoBufferSize;
 
+		m_yuvFrame->pts = m_frameCount++;
+
 		if (avcodec_send_frame(m_codecContext, m_yuvFrame) >= 0) {
 			while (avcodec_receive_packet(m_codecContext, pkt) >= 0) {
 				if (pkt->pts != AV_NOPTS_VALUE)
@@ -443,6 +446,7 @@ private:
 	AVFrame* m_yuvFrame;
 	uint32_t m_unVideoBufferSize;
 	struct SwsContext* m_img_convert_ctx;
+	uint32_t m_frameCount;
 };
 
 typedef std::map<std::string, ffmpegHelper* > ffmpegHelpers;
