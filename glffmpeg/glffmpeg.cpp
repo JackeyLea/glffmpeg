@@ -69,7 +69,6 @@ public:
 		m_width(0),
 		m_height(0),
 		m_bShutdownRequested(false),
-		m_videoBuffer(NULL),
 		m_unVideoBufferSize(0),
 		m_img_convert_ctx(NULL)
 	{
@@ -86,7 +85,6 @@ public:
 		if (m_pAVIFile != NULL)
 		{
 			av_free(m_rgbFrame);
-			free(m_videoBuffer);
 		}
 
 		if (m_yuvFrame != NULL)
@@ -255,17 +253,6 @@ public:
 				return m_status;
 			}
 
-			m_videoBuffer = NULL;
-
-			// If it is a raw format then manually allocate enough
-			// memory to hold the raw video buffer
-			/*if (!(m_videoContext->oformat->flags & AVFMT_RAWPICTURE))
-			{
-				// Allocate output buffer
-				m_unVideoBufferSize = m_width * m_height * 30;
-				m_videoBuffer = (uint8_t*)malloc(m_unVideoBufferSize);
-			}*/
-
 			// Allocate the video frames
 			uint8_t* picture_buf;
 			int size;
@@ -420,9 +407,7 @@ public:
 
 		// Encode the YUV frame.
 
-		int got_packet;
 		AVPacket* pkt = av_packet_alloc();
-		pkt->data = m_videoBuffer;
 		pkt->size = m_unVideoBufferSize;
 
 		if (avcodec_send_frame(m_codecContext, m_yuvFrame) >= 0) {
@@ -456,7 +441,6 @@ private:
 	AVCodecParameters* m_codecParams;
 	AVFrame* m_rgbFrame;
 	AVFrame* m_yuvFrame;
-	uint8_t* m_videoBuffer;
 	uint32_t m_unVideoBufferSize;
 	struct SwsContext* m_img_convert_ctx;
 };
