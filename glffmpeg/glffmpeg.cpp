@@ -415,10 +415,8 @@ public:
 
 		if (avcodec_send_frame(m_codecContext, m_yuvFrame) >= 0) {
 			while (avcodec_receive_packet(m_codecContext, pkt) >= 0) {
-				if (pkt->pts != AV_NOPTS_VALUE)
-					pkt->pts = av_rescale_q(pkt->pts, m_pAVIFile->time_base, m_pAVIFile->time_base);
-				if (pkt->dts != AV_NOPTS_VALUE)
-					pkt->dts = av_rescale_q(pkt->dts, m_pAVIFile->time_base, m_pAVIFile->time_base);
+
+				av_packet_rescale_ts(pkt, m_codecContext->time_base, m_pAVIFile->time_base);
 
 				// Write the compressed frame in the media file.
 				av_write_frame(m_videoContext, pkt);
